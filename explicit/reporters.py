@@ -4,7 +4,7 @@ import json
 from itertools import groupby
 from pathlib import Path
 
-from py_hunter.constructs import Colors, HunterStyleCheck, ReportFormat
+from explicit.constructs import Colors, ReportFormat, StyleCheck
 
 
 # Color mapping for check types
@@ -22,14 +22,16 @@ TYPE_COLORS: dict[str, str] = {
     "filter": Colors.BLUE,
     "match_guard": Colors.YELLOW,
     "single_letter_var": Colors.RED,
+    "single_use_var": Colors.GREEN,
+    "single_use_func": Colors.GREEN,
 }
 
 
-def _sort_by_file_line(check: HunterStyleCheck) -> tuple[str, int]:
+def _sort_by_file_line(check: StyleCheck) -> tuple[str, int]:
     return (check.file, check.line)
 
 
-def _group_by_file(check: HunterStyleCheck) -> str:
+def _group_by_file(check: StyleCheck) -> str:
     return check.file
 
 
@@ -38,10 +40,10 @@ def _sort_by_count_desc(item: tuple[str, int]) -> int:
 
 
 def format_report(
-    checks: list[HunterStyleCheck],
+    checks: list[StyleCheck],
     format_type: ReportFormat = ReportFormat.TEXT,
 ) -> str:
-    """Format the report of implicit boolean checks."""
+    """Format the report of style checks."""
 
     match format_type:
         case ReportFormat.JSON:
@@ -82,7 +84,7 @@ def format_report(
             output.append(f"{Colors.GRAY}{'─' * 80}{Colors.RESET}")
 
             # Group by file
-            checks_sorted: list[HunterStyleCheck] = sorted(
+            checks_sorted: list[StyleCheck] = sorted(
                 checks, key=_sort_by_file_line
             )
 
@@ -128,7 +130,7 @@ def format_report(
 
 
 def generate_statistics_report(
-    all_checks: list[HunterStyleCheck], files: list[Path]
+    all_checks: list[StyleCheck], files: list[Path]
 ) -> str:
     """Generate statistics-only report.
 
@@ -142,7 +144,7 @@ def generate_statistics_report(
     """
     output: list[str] = list()
     header: str = (
-        f"\n{Colors.BOLD}{Colors.CYAN}📊 Implicit Boolean Check "
+        f"\n{Colors.BOLD}{Colors.CYAN}📊 Check "
         f"Statistics{Colors.RESET}"
     )
     output.append(header)

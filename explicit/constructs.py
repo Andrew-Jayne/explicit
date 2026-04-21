@@ -24,6 +24,8 @@ class CheckType(StrEnum):
     FILTER = "filter"
     MATCH_GUARD = "match_guard"
     SINGLE_LETTER_VAR = "single_letter_var"
+    SINGLE_USE_VAR = "single_use_var"
+    SINGLE_USE_FUNC = "single_use_func"
 
 
 # ANSI color codes for terminal output
@@ -63,8 +65,8 @@ class Colors:
         cls._colors_enabled = False
 
 
-class HunterStyleCheck(NamedTuple):
-    """Represents an hunter style check found in the code."""
+class StyleCheck(NamedTuple):
+    """Represents a style check found in the code."""
 
     file: str
     line: int

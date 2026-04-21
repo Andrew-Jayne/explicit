@@ -2,7 +2,7 @@ import ast
 from collections.abc import Generator
 from typing import cast
 
-from py_hunter.constructs import CheckType, HunterStyleCheck
+from explicit.constructs import CheckType, StyleCheck
 
 
 MAX_CODE_LENGTH = 100
@@ -26,7 +26,7 @@ _CONTEXT_TEMPLATES: dict[CheckType, str] = {
 }
 
 
-class HunterNodeVisitor:
+class NodeVisitor:
     filename: str
     seen_names: set[str]
     disallow_lambda: bool
@@ -44,33 +44,33 @@ class HunterNodeVisitor:
         self.disallow_logic_in_match = disallow_logic_in_match
         self.seen_names = set()
 
-    def visit(self, node: ast.AST) -> Generator[HunterStyleCheck]:
+    def visit(self, node: ast.AST) -> Generator[StyleCheck]:
         method = f"visit_{type(node).__name__}"
         yield from getattr(self, method, self.generic_visit)(node)
 
-    def generic_visit(self, node: ast.AST) -> Generator[HunterStyleCheck]:
+    def generic_visit(self, node: ast.AST) -> Generator[StyleCheck]:
         for child in ast.iter_child_nodes(node):
             yield from self.visit(child)
 
-    def visit_If(self, node: ast.If) -> Generator[HunterStyleCheck]:
+    def visit_If(self, node: ast.If) -> Generator[StyleCheck]:
         if isinstance(node.test, ast.Name) is False:
             yield from self._implicit_bool_check(node.test, CheckType.IF)
         yield from self.generic_visit(node)
 
-    def visit_While(self, node: ast.While) -> Generator[HunterStyleCheck]:
+    def visit_While(self, node: ast.While) -> Generator[StyleCheck]:
         yield from self._implicit_bool_check(node.test, CheckType.WHILE)
         yield from self.generic_visit(node)
 
-    def visit_Assert(self, node: ast.Assert) -> Generator[HunterStyleCheck]:
+    def visit_Assert(self, node: ast.Assert) -> Generator[StyleCheck]:
         yield from self._implicit_bool_check(node.test, CheckType.ASSERT)
         yield from self.generic_visit(node)
 
-    def visit_IfExp(self, node: ast.IfExp) -> Generator[HunterStyleCheck]:
+    def visit_IfExp(self, node: ast.IfExp) -> Generator[StyleCheck]:
         unparsed = ast.unparse(node)
         code = unparsed[:MAX_CODE_LENGTH] + (
             "..." if len(unparsed) > MAX_CODE_LENGTH else ""
         )
-        yield HunterStyleCheck(
+        yield StyleCheck(
             file=self.filename,
             line=node.lineno,
             column=node.col_offset,
@@ -80,7 +80,7 @@ class HunterNodeVisitor:
         )
         yield from self.generic_visit(node)
 
-    def visit_BoolOp(self, node: ast.BoolOp) -> Generator[HunterStyleCheck]:
+    def visit_BoolOp(self, node: ast.BoolOp) -> Generator[StyleCheck]:
         op_str = "and" if isinstance(node.op, ast.And) is True else "or"
         for value in node.values:
             yield from self._implicit_bool_check(
@@ -88,21 +88,21 @@ class HunterNodeVisitor:
             )
         yield from self.generic_visit(node)
 
-    def visit_ListComp(self, node: ast.ListComp) -> Generator[HunterStyleCheck]:
+    def visit_ListComp(self, node: ast.ListComp) -> Generator[StyleCheck]:
         yield from self._visit_comp_node(node, CheckType.LIST_COMP)
 
-    def visit_SetComp(self, node: ast.SetComp) -> Generator[HunterStyleCheck]:
+    def visit_SetComp(self, node: ast.SetComp) -> Generator[StyleCheck]:
         yield from self._visit_comp_node(node, CheckType.SET_COMP)
 
-    def visit_DictComp(self, node: ast.DictComp) -> Generator[HunterStyleCheck]:
+    def visit_DictComp(self, node: ast.DictComp) -> Generator[StyleCheck]:
         yield from self._visit_comp_node(node, CheckType.DICT_COMP)
 
-    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> Generator[HunterStyleCheck]:
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> Generator[StyleCheck]:
         unparsed = ast.unparse(node)
         code = unparsed[:MAX_CODE_LENGTH] + (
             "..." if len(unparsed) > MAX_CODE_LENGTH else ""
         )
-        yield HunterStyleCheck(
+        yield StyleCheck(
             file=self.filename,
             line=node.lineno,
             column=node.col_offset,
@@ -113,13 +113,13 @@ class HunterNodeVisitor:
         yield from self._visit_comprehension_filters(node, "generator expression")
         yield from self.generic_visit(node)
 
-    def visit_Lambda(self, node: ast.Lambda) -> Generator[HunterStyleCheck]:
+    def visit_Lambda(self, node: ast.Lambda) -> Generator[StyleCheck]:
         if self.disallow_lambda is True:
             unparsed = ast.unparse(node)
             code = unparsed[:MAX_CODE_LENGTH] + (
                 "..." if len(unparsed) > MAX_CODE_LENGTH else ""
             )
-            yield HunterStyleCheck(
+            yield StyleCheck(
                 file=self.filename,
                 line=node.lineno,
                 column=node.col_offset,
@@ -139,7 +139,7 @@ class HunterNodeVisitor:
                 if isinstance(unaryop_body.op, ast.Not) is True:
                     body_implicit = True
             if body_implicit is True:
-                yield HunterStyleCheck(
+                yield StyleCheck(
                     file=self.filename,
                     line=node.lineno,
                     column=node.col_offset,
@@ -149,11 +149,11 @@ class HunterNodeVisitor:
                 )
         yield from self.generic_visit(node)
 
-    def visit_Match(self, node: ast.Match) -> Generator[HunterStyleCheck]:
+    def visit_Match(self, node: ast.Match) -> Generator[StyleCheck]:
         for case in node.cases:
             if case.guard is not None:
                 if self.disallow_logic_in_match is True:
-                    yield HunterStyleCheck(
+                    yield StyleCheck(
                         file=self.filename,
                         line=getattr(case.guard, "lineno", node.lineno),
                         column=getattr(case.guard, "col_offset", node.col_offset),
@@ -167,7 +167,7 @@ class HunterNodeVisitor:
                     )
         yield from self.generic_visit(node)
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> Generator[HunterStyleCheck]:
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> Generator[StyleCheck]:
         yield from self._check_single_letter_name(node, "use descriptive function name")
         all_args: list[ast.arg] = (
             node.args.args + node.args.kwonlyargs + node.args.posonlyargs
@@ -180,7 +180,7 @@ class HunterNodeVisitor:
 
     def visit_AsyncFunctionDef(
         self, node: ast.AsyncFunctionDef
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         yield from self._check_single_letter_name(node, "use descriptive function name")
         all_args: list[ast.arg] = (
             node.args.args + node.args.kwonlyargs + node.args.posonlyargs
@@ -191,11 +191,11 @@ class HunterNodeVisitor:
             )
         yield from self.generic_visit(node)
 
-    def visit_ClassDef(self, node: ast.ClassDef) -> Generator[HunterStyleCheck]:
+    def visit_ClassDef(self, node: ast.ClassDef) -> Generator[StyleCheck]:
         yield from self._check_single_letter_name(node, "use descriptive class name")
         yield from self.generic_visit(node)
 
-    def visit_For(self, node: ast.For) -> Generator[HunterStyleCheck]:
+    def visit_For(self, node: ast.For) -> Generator[StyleCheck]:
         match node.target:
             case ast.Name():
                 yield from self._check_single_letter_name(
@@ -214,13 +214,13 @@ class HunterNodeVisitor:
 
     def visit_ExceptHandler(
         self, node: ast.ExceptHandler
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         yield from self._check_single_letter_name(
             node, "use descriptive exception variable (not 'e')"
         )
         yield from self.generic_visit(node)
 
-    def visit_Assign(self, node: ast.Assign) -> Generator[HunterStyleCheck]:
+    def visit_Assign(self, node: ast.Assign) -> Generator[StyleCheck]:
         for target in node.targets:
             match target:
                 case ast.Name():
@@ -238,7 +238,7 @@ class HunterNodeVisitor:
                     pass
         yield from self.generic_visit(node)
 
-    def visit_AnnAssign(self, node: ast.AnnAssign) -> Generator[HunterStyleCheck]:
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> Generator[StyleCheck]:
         match node.target:
             case ast.Name():
                 yield from self._check_single_letter_name(
@@ -251,13 +251,13 @@ class HunterNodeVisitor:
     def visit_NamedExpr(
         self,
         node: ast.NamedExpr,
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         yield from self._check_single_letter_name(
             node.target, "use descriptive variable name (walrus operator)"
         )
         yield from self.generic_visit(node)
 
-    def visit_Call(self, node: ast.Call) -> Generator[HunterStyleCheck]:
+    def visit_Call(self, node: ast.Call) -> Generator[StyleCheck]:
         if isinstance(node.func, ast.Name) is True:
             func_node = cast(ast.Name, node.func)
             if func_node.id == "filter" and len(node.args) >= MIN_FILTER_ARGS:
@@ -265,7 +265,7 @@ class HunterNodeVisitor:
                 if isinstance(first_arg, ast.Constant) is True:
                     const_arg = cast(ast.Constant, first_arg)
                     if const_arg.value is None:
-                        yield HunterStyleCheck(
+                        yield StyleCheck(
                             file=self.filename,
                             line=node.lineno,
                             column=node.col_offset,
@@ -280,7 +280,7 @@ class HunterNodeVisitor:
         node: ast.expr,
         check_type: CheckType,
         context: str | None = None,
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         match node:
             case ast.Compare():
                 return
@@ -301,7 +301,7 @@ class HunterNodeVisitor:
                 pass
         if context is None:
             context = _CONTEXT_TEMPLATES[check_type].format(ast.unparse(node))
-        yield HunterStyleCheck(
+        yield StyleCheck(
             file=self.filename,
             line=node.lineno,
             column=node.col_offset,
@@ -319,7 +319,7 @@ class HunterNodeVisitor:
         | ast.ClassDef
         | ast.ExceptHandler,
         context: str,
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         match node:
             case ast.Name():
                 name = node.id
@@ -335,7 +335,7 @@ class HunterNodeVisitor:
             key = f"{name}:{node.lineno}:{node.col_offset}"
             if key not in self.seen_names:
                 self.seen_names.add(key)
-                yield HunterStyleCheck(
+                yield StyleCheck(
                     file=self.filename,
                     line=node.lineno,
                     column=node.col_offset,
@@ -346,7 +346,7 @@ class HunterNodeVisitor:
 
     def _visit_comprehension_filters(
         self, node: CompNode, comp_name: str
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         for gen_index, generator in enumerate(node.generators):
             for if_clause in generator.ifs:
                 if len(node.generators) > 1:
@@ -359,13 +359,13 @@ class HunterNodeVisitor:
 
     def _visit_comp_node(
         self, node: CompNode, check_type: CheckType
-    ) -> Generator[HunterStyleCheck]:
+    ) -> Generator[StyleCheck]:
         label = _COMP_LABELS[check_type]
         unparsed = ast.unparse(node)
         code = unparsed[:MAX_CODE_LENGTH] + (
             "..." if len(unparsed) > MAX_CODE_LENGTH else ""
         )
-        yield HunterStyleCheck(
+        yield StyleCheck(
             file=self.filename,
             line=node.lineno,
             column=node.col_offset,

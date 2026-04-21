@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from py_hunter.constructs import CheckType, ReportFormat
+from explicit.constructs import CheckType, ReportFormat
 
 
 class Args(argparse.Namespace):
@@ -22,7 +22,7 @@ class Args(argparse.Namespace):
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Find implicit boolean checks in Python code",
+        description="Enforce semantic clarity in Python code",
         epilog="Examples:\n"
         + "  %(prog)s myfile.py\n"
         + "  %(prog)s /path/to/project\n"
