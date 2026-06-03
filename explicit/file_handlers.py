@@ -9,16 +9,15 @@ from explicit.single_use import find_single_use
 def analyze_file(
     filepath: Path,
     *,
-    disallow_lambda: bool = False,
-    disallow_logic_in_match: bool = False,
+    include_extra: set[str] | None = None,
+    entry_points: set[str] | None = None,
 ) -> list[StyleCheck]:
-    source = filepath.read_text(encoding="utf-8")
-    tree = parse(source, filename=str(filepath))
-    finder = NodeVisitor(
-        filename=str(filepath),
-        disallow_lambda=disallow_lambda,
-        disallow_logic_in_match=disallow_logic_in_match,
+    tree = parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
+    checks = list(
+        NodeVisitor(
+            filename=str(filepath),
+            include_extra=include_extra,
+        ).visit(tree)
     )
-    checks = list(finder.visit(tree))
-    checks.extend(find_single_use(tree, str(filepath)))
+    checks.extend(find_single_use(tree, str(filepath), entry_points))
     return checks

@@ -1,0 +1,63 @@
+# Example configuration for `explicit`.
+#
+# Copy any of the [tool.explicit] settings below into your project's
+# pyproject.toml. Every key is optional; the value shown is the default used
+# when the key is omitted. Command-line flags always override these values
+# (and the list settings, exclude-type / include-extra, are merged with their
+# --exclude-type / --include-extra counterparts on the CLI).
+
+[tool.explicit]
+
+# Output format. One of: "text", "json", "csv".
+format = "text"
+
+# Turn checks off entirely. Defaults to [] (nothing excluded). Excluding a check
+# tells explicit to stop reporting that pattern -- i.e. you are choosing to allow
+# it. Each value below lists what gets flagged (so, what excluding permits):
+#   "if"                 - truthiness test in an `if`:    `if items:`  (vs `if len(items) > 0:`)
+#   "while"              - truthiness test in a `while`:  `while queue:`
+#   "assert"             - truthiness test in an `assert`: `assert result`
+#   "ternary"            - any inline conditional:        `x if cond else y`
+#   "bool_op"            - `and`/`or` with a non-boolean operand: `name and name.strip()`
+#   "comprehension"      - a truthiness filter inside a comprehension: `[x for x in xs if x]`
+#   "list_comp"          - any list comprehension:        `[f(x) for x in xs]`
+#   "set_comp"           - any set comprehension:         `{f(x) for x in xs}`
+#   "dict_comp"          - any dict comprehension:        `{k: v for k, v in items}`
+#   "generator"          - any generator expression:      `(f(x) for x in xs)`
+#   "lambda"             - a lambda (only implicit-boolean ones unless promoted via
+#                          include-extra below); exclude to silence lambdas entirely
+#   "filter"             - `filter(None, items)` -- relies on truthiness to drop falsy
+#                          items; the explicit form is `filter(is_valid, items)`
+#   "match_guard"        - a match/case guard (only implicit-boolean ones unless promoted
+#                          via include-extra below); exclude to silence guards entirely
+#   "single_letter_var"  - one-character names: `x`, `n`, `d` (vars, params, funcs, classes)
+#   "single_use_var"     - a variable assigned once and read once: `r = f(); return r`
+#   "single_use_func"    - a function defined once and called once
+exclude-type = []
+
+# Opt into stricter variants of the "exotic" checks. By default these only flag
+# an *ambiguous* (implicit-boolean) use; listing a check here flags EVERY
+# occurrence. Defaults to [] (nothing). Valid values:
+#   "lambda"       - ban all lambda expressions, not just ambiguous ones
+#   "match_guard"  - ban all match/case guards, not just ambiguous ones
+include-extra = []
+
+# Disable ANSI colors in text output.
+no-color = false
+
+# Print only the per-check-type statistics, not individual findings.
+stats-only = false
+
+
+# ---------------------------------------------------------------------------
+# Not part of [tool.explicit], but read by `explicit`:
+#
+# Functions listed as entry points are never reported as single-use functions
+# (alongside `main` and anything called only inside an
+# `if __name__ == "__main__":` guard).
+#
+# [project.scripts]
+# my-tool = "my_package.cli:main"
+#
+# [project.gui-scripts]
+# my-gui = "my_package.app:run"

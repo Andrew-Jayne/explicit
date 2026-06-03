@@ -28,6 +28,14 @@ class CheckType(StrEnum):
     SINGLE_USE_FUNC = "single_use_func"
 
 
+# Checks that have a stricter, opt-in variant. By default each only flags an
+# ambiguous (implicit-boolean) use; listing it in `include-extra` upgrades it to
+# flag *every* occurrence (ban all lambdas / all match guards).
+EXTRA_CHECKS: frozenset[CheckType] = frozenset(
+    {CheckType.LAMBDA, CheckType.MATCH_GUARD}
+)
+
+
 # ANSI color codes for terminal output
 ## this should be an enum with a .value access shortcut
 class Colors:
@@ -57,8 +65,7 @@ class Colors:
     @staticmethod
     def strip_colors(text: str) -> str:
         """Remove ANSI color codes from text."""
-        ansi_escape = re.compile(r"\033\[[0-9;]+m")
-        return ansi_escape.sub("", text)
+        return re.compile(r"\033\[[0-9;]+m").sub("", text)
 
     @classmethod
     def disable(cls) -> None:

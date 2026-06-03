@@ -54,8 +54,38 @@ explicit . --exclude-type ternary --exclude-type single_use_var
 explicit . --stats-only
 
 # Strict mode: ban all lambdas and match guards
-explicit . --disallow-lambda --disallow-logic-in-match
+explicit . --include-extra lambda --include-extra match_guard
+
+# Print version
+explicit --version
 ```
+
+## Configuration
+
+`explicit` reads defaults from a `[tool.explicit]` table in your `pyproject.toml`. It is discovered by walking up from the analyzed path, or pointed at explicitly with `--config path/to/pyproject.toml`. **Command-line flags always override the config file**; the two list settings (`exclude-type` and `include-extra`) are merged with their CLI counterparts.
+
+```toml
+[tool.explicit]
+format = "text"                 # text | json | csv
+exclude-type = ["ternary", "single_use_var"]   # turn checks off
+include-extra = ["lambda", "match_guard"]       # opt into stricter checks
+no-color = false
+stats-only = false
+```
+
+Two lists drive what runs:
+
+- **`exclude-type`** turns a check off entirely.
+- **`include-extra`** opts into the stricter variant of an "exotic" check. By default `lambda` and `match_guard` only flag *ambiguous* (implicit-boolean) uses; listing them here flags **every** lambda / match guard. (If a check appears in both lists, `exclude-type` wins — it's filtered out after analysis.)
+
+Entry points declared in `[project.scripts]` / `[project.gui-scripts]` are treated as used, so they are never reported as single-use functions. See [pyproject.example.toml](pyproject.example.toml) for every setting and its default.
+
+## What is exempt
+
+The single-use checks deliberately ignore a few legitimate patterns:
+
+- **Constants** — `ALL_CAPS` names are never flagged as single-use variables; a named constant documents intent even when referenced once.
+- **Entry points** — functions named `main`, functions called only inside an `if __name__ == "__main__":` guard, and `[project.scripts]` targets are never flagged as single-use functions.
 
 ## Output formats
 
