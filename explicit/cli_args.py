@@ -74,7 +74,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(EXTRA_CHECKS),
         help="Opt into a stricter check that flags every occurrence, not just "
         "ambiguous ones: 'lambda' bans all lambdas, 'match_guard' bans all "
-        "match/case guards (can be used multiple times)",
+        "match/case guards, 'dict_get' bans dict .get() in favor of d[key] "
+        "(can be used multiple times)",
     )
 
     parser.add_argument(  # pyright: ignore[reportUnusedCallResult]

@@ -23,16 +23,19 @@ class CheckType(StrEnum):
     LAMBDA = "lambda"
     FILTER = "filter"
     MATCH_GUARD = "match_guard"
+    DICT_GET = "dict_get"
     SINGLE_LETTER_VAR = "single_letter_var"
     SINGLE_USE_VAR = "single_use_var"
     SINGLE_USE_FUNC = "single_use_func"
 
 
-# Checks that have a stricter, opt-in variant. By default each only flags an
-# ambiguous (implicit-boolean) use; listing it in `include-extra` upgrades it to
-# flag *every* occurrence (ban all lambdas / all match guards).
+# Opt-in checks, enabled only when listed in `include-extra`. `lambda` and
+# `match_guard` have a default variant that flags ambiguous (implicit-boolean)
+# uses; listing them upgrades it to flag *every* occurrence (ban all lambdas /
+# all match guards). `dict_get` has no default variant — it fires only when
+# opted in, flagging every dict `.get()` call to force explicit keyed access.
 EXTRA_CHECKS: frozenset[CheckType] = frozenset(
-    {CheckType.LAMBDA, CheckType.MATCH_GUARD}
+    {CheckType.LAMBDA, CheckType.MATCH_GUARD, CheckType.DICT_GET}
 )
 
 

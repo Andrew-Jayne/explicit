@@ -7,6 +7,8 @@ from explicit.constructs import CheckType, StyleCheck
 
 MAX_CODE_LENGTH = 100
 MIN_FILTER_ARGS = 2
+# dict.get(key) / dict.get(key, default) — 1 or 2 positional args, no keywords.
+MAX_DICT_GET_ARGS = 2
 
 CompNode = ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp
 
@@ -262,7 +264,36 @@ class NodeVisitor:
                             context="filter(None, ...) - implicit truthiness filter",
                             check_type=CheckType.FILTER,
                         )
+        elif isinstance(node.func, ast.Attribute) is True:
+            yield from self._dict_get_check(node)
         yield from self.generic_visit(node)
+
+    def _dict_get_check(self, node: ast.Call) -> Generator[StyleCheck]:
+        if CheckType.DICT_GET not in self.include_extra:
+            return
+        func = cast(ast.Attribute, node.func)
+        if func.attr != "get":
+            return
+        # Match dict.get's arity: 1 or 2 positional args and no keywords. This
+        # filters out unrelated `.get()` APIs that take keyword arguments (e.g.
+        # requests.get(url, timeout=...)). The receiver's runtime type can't be
+        # known statically, so a non-dict `.get(key)` is an accepted false
+        # positive for this opt-in check.
+        if len(node.keywords) != 0:
+            return
+        if len(node.args) == 0 or len(node.args) > MAX_DICT_GET_ARGS:
+            return
+        for arg in node.args:
+            if isinstance(arg, ast.Starred) is True:
+                return
+        yield StyleCheck(
+            file=self.filename,
+            line=node.lineno,
+            column=node.col_offset,
+            code=_truncate(ast.unparse(node)),
+            context="dict.get() - use explicit keyed access d[key] (dict_get in include-extra)",
+            check_type=CheckType.DICT_GET,
+        )
 
     def _implicit_bool_check(
         self,

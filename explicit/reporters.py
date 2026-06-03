@@ -21,6 +21,7 @@ TYPE_COLORS: dict[str, str] = {
     "lambda": Colors.CYAN,
     "filter": Colors.BLUE,
     "match_guard": Colors.YELLOW,
+    "dict_get": Colors.BLUE,
     "single_letter_var": Colors.RED,
     "single_use_var": Colors.GREEN,
     "single_use_func": Colors.GREEN,

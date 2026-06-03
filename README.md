@@ -17,6 +17,7 @@ A semantic clarity enforcer for production Python.
 | **Lambda expressions** | Anonymous logic with no name to describe intent | Named function |
 | **`filter(None, ...)`** | Implicit truthiness as a filter predicate | Explicit filter function |
 | **Match/case guards** | Logic hidden in pattern matching syntax | Move logic to case body |
+| **`dict.get()`** *(opt-in)* | `d.get(key)` silently returns `None` on a missing key | Explicit keyed access `d[key]` |
 | **Single-letter variables** | `x`, `d`, `n` — no semantic meaning | Descriptive names |
 | **Single-use variables** | `result = compute(); return result` — pointless indirection | Inline the expression |
 | **Single-use functions** | Helper called exactly once | Inline at the call site |
@@ -76,7 +77,7 @@ stats-only = false
 Two lists drive what runs:
 
 - **`exclude-type`** turns a check off entirely.
-- **`include-extra`** opts into the stricter variant of an "exotic" check. By default `lambda` and `match_guard` only flag *ambiguous* (implicit-boolean) uses; listing them here flags **every** lambda / match guard. (If a check appears in both lists, `exclude-type` wins — it's filtered out after analysis.)
+- **`include-extra`** opts into a check that is off by default. `lambda` and `match_guard` have a default variant that only flags *ambiguous* (implicit-boolean) uses; listing them here flags **every** lambda / match guard. `dict_get` has no default variant — listing it flags **every** dict `.get()` call so missing keys fail loudly via `d[key]` instead of silently returning `None`. (If a check appears in both lists, `exclude-type` wins — it's filtered out after analysis.) `dict_get` matches `.get()` with one or two positional args and no keywords; the receiver's type isn't known statically, so an unrelated `.get(key)` is an accepted false positive.
 
 Entry points declared in `[project.scripts]` / `[project.gui-scripts]` are treated as used, so they are never reported as single-use functions. See [pyproject.example.toml](pyproject.example.toml) for every setting and its default.
 
