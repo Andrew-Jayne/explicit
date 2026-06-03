@@ -1,7 +1,7 @@
 # type: ignore
 
 # -- should flag: defined once, called once --
-def helper():
+def helper():  # expect: single_use_func
     return 42
 
 result = helper()
@@ -9,7 +9,7 @@ result = helper()
 
 # -- should flag: nested single-use helper --
 def outer():
-    def inner_helper():
+    def inner_helper():  # expect: single_use_func
         return 99
 
     return inner_helper()
@@ -19,8 +19,8 @@ def outer():
 def utility():
     return 42
 
-a = utility()
-b = utility()
+a = utility()  # expect: single_letter_var
+b = utility()  # expect: single_letter_var
 
 
 # -- should NOT flag: never called (0 references, not 1) --
@@ -30,7 +30,7 @@ def unused_func():
 
 # -- should flag: my_decorator itself is only referenced once (as a decorator) --
 # -- should NOT flag: decorated has a decorator --
-def my_decorator(fn):
+def my_decorator(fn):  # expect: single_use_func
     return fn
 
 @my_decorator
@@ -56,11 +56,27 @@ def __special__():
 __special__()
 
 
-# -- should flag: async function defined once, used once --
+# -- should NOT flag: async functions are excluded --
 async def async_helper():
     return 1
 
 await async_helper()
+
+
+# -- should NOT flag: function named 'main' is excluded --
+def main():
+    pass
+
+main()
+
+
+# -- should NOT flag: entry point called only from __name__ guard --
+def cli():
+    pass
+
+
+if __name__ == "__main__":
+    cli()
 
 
 # -- should NOT flag: multiple definitions (conditional) --
@@ -75,7 +91,7 @@ conditional()
 
 
 # -- should flag: passed as callback (still single reference) --
-def handler():
+def handler():  # expect: single_use_func
     print("handling")
 
 register(handler)

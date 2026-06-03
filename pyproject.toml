@@ -7,6 +7,15 @@ dependencies = []
 [project.scripts]
 explicit = "explicit:main"
 
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The tests/test_*.py files are fixtures, not tests — importing them would run
+# their top-level code and crash. Collect only the harness instead.
+python_files = ["check_*.py"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

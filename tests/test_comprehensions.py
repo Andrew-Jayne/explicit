@@ -5,7 +5,7 @@ mixed: list[int | None] = [1, None, 2, None, 3]
 
 
 # -- list comp --
-result = [item for item in items]
+result = [item for item in items]  # expect: list_comp
 
 result: list[int] = []
 for item in items:
@@ -13,7 +13,7 @@ for item in items:
 
 
 # -- set comp --
-unique = {item for item in items}
+unique = {item for item in items}  # expect: set_comp
 
 unique: set[int] = set()
 for item in items:
@@ -21,7 +21,7 @@ for item in items:
 
 
 # -- dict comp --
-lookup = {key: val for key, val in pairs}
+lookup = {key: val for key, val in pairs}  # expect: dict_comp
 
 lookup = {}
 for key, val in pairs:
@@ -29,7 +29,7 @@ for key, val in pairs:
 
 
 # -- generator --
-total = sum(item * 2 for item in items)
+total = sum(item * 2 for item in items)  # expect: generator
 
 total = 0
 for item in items:
@@ -37,7 +37,7 @@ for item in items:
 
 
 # -- explicit if filter --
-filtered = [item for item in items if item > 0]
+filtered = [item for item in items if item > 0]  # expect: list_comp
 
 filtered: list[int] = []
 for item in items:
@@ -46,7 +46,7 @@ for item in items:
 
 
 # -- implicit if filter --
-filtered = [item for item in mixed if item]
+filtered = [item for item in mixed if item]  # expect: list_comp, comprehension
 
 filtered = []
 for item in mixed:
@@ -55,7 +55,7 @@ for item in mixed:
 
 
 # -- filter(None) --
-cleaned = list(filter(None, mixed))
+cleaned = list(filter(None, mixed))  # expect: filter
 
 cleaned: list[int | None] = []
 for item in mixed:
@@ -64,7 +64,7 @@ for item in mixed:
 
 
 # -- nested generators --
-nested = [item for item in items for other in items]
+nested = [item for item in items for other in items]  # expect: list_comp
 
 nested: list[int] = []
 for item in items:

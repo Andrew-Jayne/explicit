@@ -1,5 +1,6 @@
 # type: ignore
-value = True
+# explicit-test: modes=default,extra; extra=match_guard
+value = True  # expect: single_use_var
 count: int = 5
 
 
@@ -7,13 +8,13 @@ count: int = 5
 
 # -- implicit guard (name) --
 match count:
-    case _ if count:
+    case _ if count:  # expect: match_guard
         pass
     case _:
         pass
 
 match count:
-    case _ if count > 0:
+    case _ if count > 0:  # expect: match_guard@extra
         pass
     case _:
         pass
@@ -21,13 +22,13 @@ match count:
 
 # -- implicit guard (not + name) --
 match count:
-    case _ if not count:
+    case _ if not count:  # expect: match_guard
         pass
     case _:
         pass
 
 match count:
-    case _ if not (count > 0):
+    case _ if not (count > 0):  # expect: match_guard@extra
         pass
     case _:
         pass
@@ -41,24 +42,24 @@ match count:
 
 # -- and --
 match count:
-    case _ if count and value:
+    case _ if count and value:  # expect: bool_op, bool_op, match_guard@default, match_guard@default, match_guard@extra
         pass
     case _:
         pass
 
 match count:
-    case _ if count > 0 and count < 10:
+    case _ if count > 0 and count < 10:  # expect: match_guard@extra
         pass
     case _:
         pass
 
 
-# ── --disallow-logic-in-match: all guards banned ─────────────────────────────
+# ── --include-extra match_guard: all guards banned ───────────────────────────
 # any guard is flagged regardless of explicit vs implicit
 # the right pattern is to move the condition into the case body
 
 match count:
-    case _ if count > 0:  # flagged with --disallow-logic-in-match
+    case _ if count > 0:  # expect: match_guard@extra
         pass
     case _:
         pass

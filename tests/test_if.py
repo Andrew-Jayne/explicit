@@ -17,35 +17,35 @@ def get_value() -> bool:
 
 
 # -- name --
-if not value:
+if not value:  # expect: if
     pass
-if value:
+if value:  # expect: if
     pass
 
 # -- call --
-if get_value():
+if get_value():  # expect: if
     pass
 if get_value() is True:
     pass
-if not get_value():
+if not get_value():  # expect: if
     pass
 if get_value() is False:
     pass
 
 # -- attribute --
-if obj.attr:
+if obj.attr:  # expect: if
     pass
 if obj.attr is True:
     pass
 
 # -- subscript --
-if items[0]:
+if items[0]:  # expect: if
     pass
 if items[0] > 0:
     pass
 
 # -- not + compare --
-if not count:
+if not count:  # expect: if
     pass
 if not (count > 0):
     pass
@@ -71,29 +71,29 @@ if count in items:
     pass
 
 # -- and --
-if value and other:
+if value and other:  # expect: if, if, bool_op, bool_op
     pass
 if count > 0 and count < 10:
     pass
-if not value and not other:
+if not value and not other:  # expect: if, if, bool_op, bool_op
     pass
 if value is True and other is False:
     pass
 
 # -- or --
-if value or other:
+if value or other:  # expect: if, if, bool_op, bool_op
     pass
 if value is True or other is True:  # pyright: ignore[reportUnnecessaryComparison]
     pass
 
 # -- mixed BoolOp --
-if value and count > 0:
+if value and count > 0:  # expect: if, bool_op
     pass
 if value is True and count > 0:
     pass
 
 # -- walrus --
-if (result := get_value()):
+if (result := get_value()):  # expect: if
     pass
 if (result := get_value()) is True:
     pass
@@ -101,7 +101,7 @@ if (result := get_value()) is True:
 # -- elif --
 if count > 0:
     pass
-elif get_value():
+elif get_value():  # expect: if
     pass
 
 if count > 0:

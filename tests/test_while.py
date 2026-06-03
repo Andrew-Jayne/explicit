@@ -16,28 +16,28 @@ def get_value() -> bool:
 
 
 # -- name --
-while value:
+while value:  # expect: while
     break
 while value is True:
     break
 
 
 # -- call --
-while get_value():
+while get_value():  # expect: while
     break
 while get_value() is True:
     break
 
 
 # -- attribute --
-while obj.attr:
+while obj.attr:  # expect: while
     break
 while obj.attr is True:
     break
 
 
 # -- not + name --
-while not value:
+while not value:  # expect: while
     break
 while value is False:  # pyright: ignore[reportUnnecessaryComparison]
     break
@@ -63,14 +63,14 @@ while count != 0:  # pyright: ignore[reportUnnecessaryComparison]
 
 
 # -- and --
-while value and other:
+while value and other:  # expect: while, while, bool_op, bool_op
     break
 while count > 0 and count < 10:
     break
 
 
 # -- or --
-while value or other:
+while value or other:  # expect: while, while, bool_op, bool_op
     break
 while value is True or other is True:  # pyright: ignore[reportUnnecessaryComparison]
     break

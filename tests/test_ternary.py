@@ -16,7 +16,7 @@ def get_value() -> bool:
 
 
 # -- basic --
-result = 1 if value is True else 0
+result = 1 if value is True else 0  # expect: ternary
 
 result = 1
 if value is True:
@@ -26,7 +26,7 @@ else:
 
 
 # -- call --
-result = 1 if get_value() is True else 0
+result = 1 if get_value() is True else 0  # expect: ternary
 
 result = 1
 if get_value() is True:
@@ -36,7 +36,7 @@ else:
 
 
 # -- attribute --
-result = 1 if obj.attr is True else 0
+result = 1 if obj.attr is True else 0  # expect: ternary
 
 result = 1
 if obj.attr is True:
@@ -46,7 +46,7 @@ else:
 
 
 # -- comparison --
-result = 1 if count > 0 else 0
+result = 1 if count > 0 else 0  # expect: ternary
 
 result = 1
 if count > 0:

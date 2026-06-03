@@ -1,6 +1,6 @@
 # type: ignore
 # -- function names --
-def f():
+def f():  # expect: single_letter_var
     pass
 
 def func():
@@ -8,7 +8,7 @@ def func():
 
 
 # -- function parameters --
-def func_with_args(x):
+def func_with_args(x):  # expect: single_letter_var
     pass
 
 def func_with_args(param):
@@ -16,7 +16,7 @@ def func_with_args(param):
 
 
 # -- async function --
-async def g():
+async def g():  # expect: single_letter_var
     pass
 
 async def handler():
@@ -24,7 +24,7 @@ async def handler():
 
 
 # -- class names --
-class C:
+class C:  # expect: single_letter_var
     pass
 
 class Counter:
@@ -32,19 +32,19 @@ class Counter:
 
 
 # -- variable assignment --
-x = 1
+x = 1  # expect: single_letter_var
 
 var = 1
 
 
 # -- annotated assignment --
-y: int = 2
+y: int = 2  # expect: single_letter_var
 
 count: int = 2
 
 
 # -- loop variables --
-for i in range(10):
+for i in range(10):  # expect: single_letter_var
     pass
 
 for item in range(10):
@@ -52,13 +52,13 @@ for item in range(10):
 
 
 # -- tuple unpacking --
-a, b = 1, 2
+a, b = 1, 2  # expect: single_letter_var, single_letter_var
 
 first, second = 1, 2
 
 
 # -- multiple assignment --
-x = y = 0
+x = y = 0  # expect: single_letter_var, single_letter_var
 
 val = result = 0
 
@@ -66,7 +66,7 @@ val = result = 0
 # -- exception handler --
 try:
     pass
-except Exception as e:
+except Exception as e:  # expect: single_letter_var
     pass
 
 try:
@@ -76,7 +76,7 @@ except Exception as err:
 
 
 # -- walrus operator --
-if (n := 5) > 0:
+if (n := 5) > 0:  # expect: single_letter_var
     pass
 
 if (result := 5) > 0:

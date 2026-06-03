@@ -16,25 +16,25 @@ def get_value() -> bool:
 
 
 # -- name --
-assert value
+assert value  # expect: assert
 
 assert value is True
 
 
 # -- call --
-assert get_value()
+assert get_value()  # expect: assert
 
 assert get_value() is True
 
 
 # -- attribute --
-assert obj.attr
+assert obj.attr  # expect: assert
 
 assert obj.attr is True
 
 
 # -- not + name --
-assert not value
+assert not value  # expect: assert
 
 assert value is False
 
@@ -56,12 +56,12 @@ assert count != 0
 
 
 # -- and --
-assert value and other
+assert value and other  # expect: assert, assert, bool_op, bool_op
 
 assert count > 0 and count < 10
 
 
 # -- or --
-assert value or other
+assert value or other  # expect: assert, assert, bool_op, bool_op
 
 assert value is True or other is True
