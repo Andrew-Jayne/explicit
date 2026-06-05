@@ -1,6 +1,6 @@
 [project]
 name = "explicit"
-version = "1.0.0"
+version = "1.0.0b1"
 requires-python = ">=3.14"
 dependencies = []
 
@@ -8,7 +8,9 @@ dependencies = []
 explicit = "explicit:main"
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = [
+    "pytest>=8.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
